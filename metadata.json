@@ -1,0 +1,6 @@
+{
+  "name": "Productivity Template",
+  "description": "A calm, minimalist Notion productivity workspace featuring daily flow, task databases, habit tracking, and mindful notes in muted sage and warm beige.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
