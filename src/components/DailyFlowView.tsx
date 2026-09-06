@@ -4,7 +4,7 @@ import { NotionCallout } from './NotionCallout';
 import { NotionToggle } from './NotionToggle';
 import { FlowStateModal } from './FlowStateModal';
 import { ScheduleBlockModal } from './ScheduleBlockModal';
-import { Check, Plus, Clock, Sparkles, Trash2, RotateCcw, Copy, RefreshCw, Flame } from 'lucide-react';
+import { Check, Plus, Minus, Clock, Sparkles, Trash2, RotateCcw, Copy, RefreshCw, Flame, X } from 'lucide-react';
 
 interface DailyFlowViewProps {
   daily: DailyFocus;
@@ -36,13 +36,18 @@ export const DailyFlowView: React.FC<DailyFlowViewProps> = ({ daily, onUpdateDai
   // Dynamic streak state
   const [streakDays, setStreakDays] = useState<number>(() => {
     const saved = localStorage.getItem('sanctuary_streak_days');
-    return saved ? parseInt(saved, 10) : 12;
+    return saved !== null ? parseInt(saved, 10) : 12;
   });
+
+  const [confirmResetStreak, setConfirmResetStreak] = useState(false);
+  const [isEditingStreak, setIsEditingStreak] = useState(false);
+  const [editStreakValue, setEditStreakValue] = useState('12');
 
   // Reset streak on workspace reset
   useEffect(() => {
     const handleWorkspaceReset = () => {
-      setStreakDays(12);
+      setStreakDays(0);
+      localStorage.setItem('sanctuary_streak_days', '0');
     };
     window.addEventListener('sanctuary_workspace_reset', handleWorkspaceReset);
     return () => window.removeEventListener('sanctuary_workspace_reset', handleWorkspaceReset);
@@ -175,10 +180,34 @@ export const DailyFlowView: React.FC<DailyFlowViewProps> = ({ daily, onUpdateDai
     });
   };
 
+  const updateStreak = (next: number) => {
+    const safe = Math.max(0, next);
+    setStreakDays(safe);
+    localStorage.setItem('sanctuary_streak_days', safe.toString());
+  };
+
   const handleIncrementStreak = () => {
-    const next = streakDays + 1;
-    setStreakDays(next);
-    localStorage.setItem('sanctuary_streak_days', next.toString());
+    updateStreak(streakDays + 1);
+  };
+
+  const handleDecrementStreak = () => {
+    if (streakDays > 0) {
+      updateStreak(streakDays - 1);
+    }
+  };
+
+  const handleResetStreak = () => {
+    updateStreak(0);
+    setConfirmResetStreak(false);
+    setIsEditingStreak(false);
+  };
+
+  const handleSaveCustomStreak = () => {
+    const parsed = parseInt(editStreakValue, 10);
+    if (!isNaN(parsed) && parsed >= 0) {
+      updateStreak(parsed);
+    }
+    setIsEditingStreak(false);
   };
 
   const handleCopyNotes = () => {
@@ -429,19 +458,123 @@ export const DailyFlowView: React.FC<DailyFlowViewProps> = ({ daily, onUpdateDai
 
           {/* Streak Metric Block from design */}
           <div
-            onClick={handleIncrementStreak}
-            className="mt-6 p-4 bg-[#F5F2ED] hover:bg-[#EAE7E0]/70 transition-colors rounded-2xl border border-[#E3E8E1] cursor-pointer group select-none"
-            title="Click to advance streak"
+            className="mt-6 p-4 bg-[#F5F2ED] rounded-2xl border border-[#E3E8E1] transition-all relative select-none overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-[10px] uppercase tracking-widest opacity-60 font-bold">
+            {/* Top row: Label and Flame icon strictly within bounds */}
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-[10px] uppercase tracking-widest opacity-60 font-bold text-[#3A3F3A]">
                 Consistent Streak
               </p>
-              <Flame className="w-3.5 h-3.5 text-[#7B8C7D] group-hover:scale-110 transition-transform" />
+              <Flame className={`w-3.5 h-3.5 transition-colors ${streakDays > 0 ? 'text-[#7B8C7D]' : 'text-[#3A3F3A]/30'}`} />
             </div>
-            <p className="text-3xl font-serif text-[#3A3F3A]">
-              {streakDays} <span className="text-sm font-sans opacity-60 font-normal">Days unbroken</span>
-            </p>
+
+            {/* Main row: Number + Days unbroken on left, Controls neatly contained on right */}
+            {isEditingStreak ? (
+              <div className="flex items-center gap-2 mt-1">
+                <input
+                  type="number"
+                  min="0"
+                  value={editStreakValue}
+                  onChange={(e) => setEditStreakValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveCustomStreak();
+                    if (e.key === 'Escape') setIsEditingStreak(false);
+                  }}
+                  autoFocus
+                  className="w-16 px-2 py-0.5 text-xl font-serif text-[#3A3F3A] bg-white border border-[#7B8C7D] rounded-lg focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveCustomStreak}
+                  className="px-2 py-1 text-[11px] font-medium bg-[#7B8C7D] text-white rounded-lg hover:bg-[#68776A] transition-colors cursor-pointer"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingStreak(false)}
+                  className="px-1.5 py-1 text-[11px] text-[#3A3F3A]/60 hover:text-[#3A3F3A] rounded-lg transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditStreakValue(streakDays.toString());
+                    setIsEditingStreak(true);
+                    setConfirmResetStreak(false);
+                  }}
+                  className="flex items-baseline gap-1.5 text-left group/num cursor-pointer"
+                  title="Click to edit streak number"
+                >
+                  <span className="text-3xl font-serif text-[#3A3F3A] group-hover/num:text-[#7B8C7D] transition-colors">
+                    {streakDays}
+                  </span>
+                  <span className="text-xs sm:text-sm font-sans opacity-60 font-normal">
+                    {streakDays === 1 ? 'Day unbroken' : 'Days unbroken'}
+                  </span>
+                </button>
+
+                {/* Right controls: Stepper and Reset button - strictly contained */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center bg-white rounded-lg border border-[#D9D1C7] shadow-2xs overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={handleDecrementStreak}
+                      disabled={streakDays <= 0}
+                      className="w-6 h-6 flex items-center justify-center text-[#3A3F3A]/60 hover:text-[#3A3F3A] hover:bg-[#F5F2ED] disabled:opacity-25 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      title="Decrease streak"
+                    >
+                      <Minus className="w-2.5 h-2.5" />
+                    </button>
+                    <div className="w-[1px] h-3 bg-[#E3E8E1]" />
+                    <button
+                      type="button"
+                      onClick={handleIncrementStreak}
+                      className="w-6 h-6 flex items-center justify-center text-[#3A3F3A]/60 hover:text-[#7B8C7D] hover:bg-[#F5F2ED] transition-colors cursor-pointer"
+                      title="Advance streak"
+                    >
+                      <Plus className="w-2.5 h-2.5" />
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setConfirmResetStreak(true)}
+                    className="w-6 h-6 flex items-center justify-center rounded-lg bg-white border border-[#D9D1C7] text-[#3A3F3A]/50 hover:text-[#944D4D] hover:border-[#944D4D]/40 hover:bg-[#FAF5F5] transition-all cursor-pointer shadow-2xs"
+                    title="Reset streak to 0"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Inline confirmation banner when Reset is clicked */}
+            {confirmResetStreak && (
+              <div className="mt-2.5 pt-2 border-t border-[#E3E8E1] flex items-center justify-between animate-in fade-in duration-150">
+                <span className="text-[11px] font-medium text-[#944D4D]">Reset streak to 0?</span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleResetStreak}
+                    className="px-2 py-0.5 text-[10px] font-semibold text-white bg-[#944D4D] hover:bg-[#7D3F3F] rounded cursor-pointer transition-colors shadow-2xs"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmResetStreak(false)}
+                    className="px-1.5 py-0.5 text-[10px] text-[#3A3F3A]/60 hover:text-[#3A3F3A] cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
