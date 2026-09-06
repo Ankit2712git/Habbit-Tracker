@@ -35,7 +35,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedPage, setCopiedPage] = useState(false);
   const [copiedFullTemplate, setCopiedFullTemplate] = useState(false);
-  const [activeTab, setActiveTab] = useState<'embed' | 'copy' | 'guide'>('embed');
+  const [activeTab, setActiveTab] = useState<'embed' | 'copy' | 'guide'>('copy');
 
   // Copy current live URL for Notion /embed
   const handleCopyEmbedUrl = () => {
@@ -119,6 +119,20 @@ export const TopBar: React.FC<TopBarProps> = ({
     navigator.clipboard.writeText(fullMd);
     setCopiedFullTemplate(true);
     setTimeout(() => setCopiedFullTemplate(false), 2000);
+  };
+
+  const exportAsMarkdown = () => {
+    const sections = ['daily-flow', 'tasks', 'habits', 'projects', 'reading', 'reflection'];
+    const fullMd = sections.map((s) => generatePageMarkdown(s)).join('\n\n---\n\n');
+    const blob = new Blob([fullMd], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', url);
+    downloadAnchor.setAttribute('download', `sanctuary-notion-template.md`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    URL.revokeObjectURL(url);
   };
 
   const exportAsJSON = () => {
@@ -256,17 +270,6 @@ export const TopBar: React.FC<TopBarProps> = ({
             <div className="flex items-center gap-1.5 p-1 bg-[#F5F2ED] rounded-full border border-[#D9D1C7]">
               <button
                 type="button"
-                onClick={() => setActiveTab('embed')}
-                className={`flex-1 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer text-center ${
-                  activeTab === 'embed'
-                    ? 'bg-[#7B8C7D] text-[#F5F2ED] shadow-2xs'
-                    : 'text-[#3A3F3A]/70 hover:text-[#3A3F3A]'
-                }`}
-              >
-                1. Embed Live Widget
-              </button>
-              <button
-                type="button"
                 onClick={() => setActiveTab('copy')}
                 className={`flex-1 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer text-center ${
                   activeTab === 'copy'
@@ -274,7 +277,18 @@ export const TopBar: React.FC<TopBarProps> = ({
                     : 'text-[#3A3F3A]/70 hover:text-[#3A3F3A]'
                 }`}
               >
-                2. Paste as Blocks
+                1. Native Notion (No Embed)
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('embed')}
+                className={`flex-1 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer text-center ${
+                  activeTab === 'embed'
+                    ? 'bg-[#7B8C7D] text-[#F5F2ED] shadow-2xs'
+                    : 'text-[#3A3F3A]/70 hover:text-[#3A3F3A]'
+                }`}
+              >
+                2. Embed Widget
               </button>
               <button
                 type="button"
@@ -289,7 +303,120 @@ export const TopBar: React.FC<TopBarProps> = ({
               </button>
             </div>
 
-            {/* TAB 1: Embed in Notion */}
+            {/* TAB 1: Native Notion (No Embed) */}
+            {activeTab === 'copy' && (
+              <div className="space-y-3 pt-1">
+                <p className="text-xs text-[#3A3F3A]/70 leading-relaxed">
+                  Use this template directly inside Notion without embedding! You can copy the formatted markdown or download files to import into your Notion workspace:
+                </p>
+
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={handleCopyFullWorkspace}
+                    className="w-full flex items-center justify-between p-3.5 rounded-2xl border-2 border-[#7B8C7D]/40 bg-[#7B8C7D]/5 hover:bg-[#7B8C7D]/10 transition-colors cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <LayoutGrid className="w-4 h-4 text-[#7B8C7D]" />
+                      <div>
+                        <span className="text-xs font-semibold text-[#3A3F3A] block">
+                          Copy Entire Notion Template (Markdown)
+                        </span>
+                        <span className="text-[11px] text-[#3A3F3A]/60">
+                          Paste directly into Notion (Cmd+V) for instant native blocks
+                        </span>
+                      </div>
+                    </div>
+                    {copiedFullTemplate ? (
+                      <span className="text-[11px] text-[#7B8C7D] font-medium flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5" /> Copied!
+                      </span>
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 text-[#3A3F3A]/60" />
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={exportAsMarkdown}
+                    className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-[#E3E8E1] hover:bg-[#F5F2ED] transition-colors cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Download className="w-4 h-4 text-[#7B8C7D]" />
+                      <div>
+                        <span className="text-xs font-semibold text-[#3A3F3A] block">
+                          Download Notion Markdown File (.md)
+                        </span>
+                        <span className="text-[11px] text-[#3A3F3A]/60">
+                          Import directly via Notion → Settings & Members → Import
+                        </span>
+                      </div>
+                    </div>
+                    <Download className="w-3.5 h-3.5 text-[#3A3F3A]/40" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyCurrentPage}
+                    className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-[#E3E8E1] hover:bg-[#F5F2ED] transition-colors cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-4 h-4 text-[#7B8C7D]" />
+                      <div>
+                        <span className="text-xs font-semibold text-[#3A3F3A] block">
+                          Copy Current View ({page.title})
+                        </span>
+                        <span className="text-[11px] text-[#3A3F3A]/60">
+                          Formatted with checkboxes, tables & quotes
+                        </span>
+                      </div>
+                    </div>
+                    {copiedPage ? (
+                      <span className="text-[11px] text-[#7B8C7D] font-medium flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5" /> Copied!
+                      </span>
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 text-[#3A3F3A]/40" />
+                    )}
+                  </button>
+
+                  {/* Database CSV Direct Downloads */}
+                  <div className="pt-2 border-t border-[#E3E8E1]">
+                    <span className="text-[11px] font-semibold text-[#3A3F3A]/70 uppercase tracking-wider block mb-2">
+                      Download Databases as CSV (Import into Notion Database)
+                    </span>
+                    <div className="grid grid-cols-3 gap-2">
+                      <a
+                        href="/notion-csv/tasks.csv"
+                        download="tasks-database.csv"
+                        className="p-2.5 rounded-xl border border-[#D9D1C7] hover:border-[#7B8C7D] bg-white hover:bg-[#F5F2ED] text-center text-xs font-medium text-[#3A3F3A] transition-colors flex flex-col items-center gap-1 cursor-pointer"
+                      >
+                        <span className="text-sm">🗂️</span>
+                        <span>Tasks CSV</span>
+                      </a>
+                      <a
+                        href="/notion-csv/habits.csv"
+                        download="habits-database.csv"
+                        className="p-2.5 rounded-xl border border-[#D9D1C7] hover:border-[#7B8C7D] bg-white hover:bg-[#F5F2ED] text-center text-xs font-medium text-[#3A3F3A] transition-colors flex flex-col items-center gap-1 cursor-pointer"
+                      >
+                        <span className="text-sm">🍵</span>
+                        <span>Habits CSV</span>
+                      </a>
+                      <a
+                        href="/notion-csv/reading.csv"
+                        download="reading-database.csv"
+                        className="p-2.5 rounded-xl border border-[#D9D1C7] hover:border-[#7B8C7D] bg-white hover:bg-[#F5F2ED] text-center text-xs font-medium text-[#3A3F3A] transition-colors flex flex-col items-center gap-1 cursor-pointer"
+                      >
+                        <span className="text-sm">📖</span>
+                        <span>Books CSV</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: Embed in Notion */}
             {activeTab === 'embed' && (
               <div className="space-y-4 pt-1">
                 <div className="p-4 bg-[#F5F2ED] border border-[#E3E8E1] rounded-2xl space-y-3">
@@ -330,86 +457,6 @@ export const TopBar: React.FC<TopBarProps> = ({
                       Drag the corner handles of the widget to expand it full-width, and enable <span className="font-semibold text-[#3A3F3A]">Full width</span> in Notion page settings (top-right <code className="px-1 py-0.5 bg-[#F5F2ED] rounded">...</code> menu).
                     </li>
                   </ol>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 2: Copy as Native Notion Blocks */}
-            {activeTab === 'copy' && (
-              <div className="space-y-3 pt-1">
-                <p className="text-xs text-[#3A3F3A]/70 leading-relaxed">
-                  Copying formatted content allows you to paste directly into an empty Notion page. Notion automatically converts it into native Notion Callouts, Checkboxes, and Tables!
-                </p>
-
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={handleCopyCurrentPage}
-                    className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-[#E3E8E1] hover:bg-[#F5F2ED] transition-colors cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-4 h-4 text-[#7B8C7D]" />
-                      <div>
-                        <span className="text-xs font-semibold text-[#3A3F3A] block">
-                          Copy Current View ({page.title})
-                        </span>
-                        <span className="text-[11px] text-[#3A3F3A]/60">
-                          Formatted with checkboxes, tables & quotes
-                        </span>
-                      </div>
-                    </div>
-                    {copiedPage ? (
-                      <span className="text-[11px] text-[#7B8C7D] font-medium flex items-center gap-1">
-                        <Check className="w-3.5 h-3.5" /> Copied!
-                      </span>
-                    ) : (
-                      <Copy className="w-3.5 h-3.5 text-[#3A3F3A]/40" />
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleCopyFullWorkspace}
-                    className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-[#E3E8E1] hover:bg-[#F5F2ED] transition-colors cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <LayoutGrid className="w-4 h-4 text-[#7B8C7D]" />
-                      <div>
-                        <span className="text-xs font-semibold text-[#3A3F3A] block">
-                          Copy Entire Workspace Template
-                        </span>
-                        <span className="text-[11px] text-[#3A3F3A]/60">
-                          Includes Flow, Tasks, Habits, Projects, Books & Journal
-                        </span>
-                      </div>
-                    </div>
-                    {copiedFullTemplate ? (
-                      <span className="text-[11px] text-[#7B8C7D] font-medium flex items-center gap-1">
-                        <Check className="w-3.5 h-3.5" /> Copied!
-                      </span>
-                    ) : (
-                      <Copy className="w-3.5 h-3.5 text-[#3A3F3A]/40" />
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={exportAsJSON}
-                    className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-[#E3E8E1] hover:bg-[#F5F2ED] transition-colors cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Download className="w-4 h-4 text-[#7B8C7D]" />
-                      <div>
-                        <span className="text-xs font-semibold text-[#3A3F3A] block">
-                          Download JSON Backup
-                        </span>
-                        <span className="text-[11px] text-[#3A3F3A]/60">
-                          Complete raw state file for import/export
-                        </span>
-                      </div>
-                    </div>
-                    <Download className="w-3.5 h-3.5 text-[#3A3F3A]/40" />
-                  </button>
                 </div>
               </div>
             )}
