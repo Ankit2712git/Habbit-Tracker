@@ -94,6 +94,7 @@ export interface WorkspaceState {
   habits: HabitItem[];
   projects: ProjectItem[];
   library: ReadingItem[];
+  reading?: ReadingItem[];
   daily: DailyFocus;
   fontStyle: 'sans' | 'serif' | 'mono';
   fullWidth: boolean;

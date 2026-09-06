@@ -161,49 +161,61 @@ export const TopBar: React.FC<TopBarProps> = ({
   // Generate clean export markdown formatted for direct Notion block pasting
   const generatePageMarkdown = (type: string) => {
     let md = '';
+    const safeDaily = workspaceState?.daily;
+    const bigThree = safeDaily?.bigThree || [];
+    const timeBlocks = safeDaily?.timeBlocks || [];
+    const tasks = workspaceState?.tasks || [];
+    const habits = workspaceState?.habits || [];
+    const projects = workspaceState?.projects || [];
+    const books = workspaceState?.library || workspaceState?.reading || [];
+
     if (type === 'daily-flow') {
       md += `# 🌿 Daily Flow & Focus Architecture\n\n`;
-      md += `> 💡 **Wisdom of the Day**\n> "${workspaceState.daily.quote.text}" — *${workspaceState.daily.quote.author}*\n\n`;
+      if (safeDaily?.quote) {
+        md += `> 💡 **Wisdom of the Day**\n> "${safeDaily.quote.text || ''}" — *${safeDaily.quote.author || ''}*\n\n`;
+      }
       md += `## 🎯 Today's Big Three (High-Leverage Focus)\n`;
-      workspaceState.daily.bigThree.forEach((b) => {
-        md += `- [${b.done ? 'x' : ' '}] ${b.text}\n`;
+      bigThree.forEach((b) => {
+        md += `- [${b?.done ? 'x' : ' '}] ${b?.text || ''}\n`;
       });
       md += `\n## ⏳ Time Architecture & Focus Sprints\n`;
-      workspaceState.daily.timeBlocks.forEach((tb) => {
-        md += `- **${tb.time}**: ${tb.task} *[${tb.type}]*\n`;
+      timeBlocks.forEach((tb) => {
+        md += `- **${tb?.time || ''}**: ${tb?.task || ''} *[${tb?.type || ''}]*\n`;
       });
       md += `\n## 📝 Morning Mindfulness Scratchpad\n`;
       md += `*Mindful thoughts, observations, and unstructured notes go here.*\n`;
     } else if (type === 'tasks') {
       md += `# 🗂️ Sanctuary Action Database\n\n`;
       md += `| Status | Task | Priority | Life Area | Due Date |\n|---|---|---|---|---|\n`;
-      workspaceState.tasks.forEach((t) => {
-        md += `| ${t.status} | ${t.title} | ${t.priority} | ${t.area} | ${t.dueDate || '-'} |\n`;
+      tasks.forEach((t) => {
+        md += `| ${t?.status || ''} | ${t?.title || ''} | ${t?.priority || ''} | ${t?.area || ''} | ${t?.dueDate || '-'} |\n`;
       });
     } else if (type === 'habits') {
       md += `# 🍵 Weekly Habit Consistency Matrix\n\n`;
       md += `| Habit | Category | Mon | Tue | Wed | Thu | Fri | Sat | Sun | Streak |\n|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|---|\n`;
-      workspaceState.habits.forEach((h) => {
-        const days = h.days.map((d) => (d ? '✓' : '—')).join(' | ');
-        md += `| **${h.name}** | ${h.category} | ${days} | ${h.streak} days |\n`;
+      habits.forEach((h) => {
+        const daysList = Array.isArray(h?.days) ? h.days : [];
+        const days = daysList.map((d) => (d ? '✓' : '—')).join(' | ');
+        md += `| **${h?.name || ''}** | ${h?.category || ''} | ${days} | ${h?.streak || 0} days |\n`;
       });
     } else if (type === 'projects') {
       md += `# 🪴 Active Quarters & High-Leverage Initiatives\n\n`;
-      workspaceState.projects.forEach((p) => {
-        md += `### ${p.title} (${p.progress}% Complete)\n`;
-        md += `*Area:* ${p.area} | *Quarter:* ${p.quarter} | *Status:* ${p.status}\n\n`;
-        md += `> ${p.summary}\n\n`;
+      projects.forEach((p) => {
+        md += `### ${p?.title || ''} (${p?.progress || 0}% Complete)\n`;
+        md += `*Area:* ${p?.area || ''} | *Quarter:* ${p?.quarter || ''} | *Status:* ${p?.status || ''}\n\n`;
+        md += `> ${p?.summary || ''}\n\n`;
         md += `**Key Milestones:**\n`;
-        p.milestones.forEach((m) => {
-          md += `- [${m.done ? 'x' : ' '}] ${m.text}\n`;
+        const milestones = p?.milestones || [];
+        milestones.forEach((m) => {
+          md += `- [${m?.done ? 'x' : ' '}] ${m?.text || ''}\n`;
         });
         md += `\n---\n\n`;
       });
     } else if (type === 'reading') {
       md += `# 📖 Reading Shelf & Wisdom Garden\n\n`;
       md += `| Title | Author | Format | Status | Core Takeaway |\n|---|---|---|---|---|\n`;
-      workspaceState.reading.forEach((r) => {
-        md += `| **${r.title}** | ${r.author} | ${r.format} | ${r.status} | "${r.takeaway || ''}" |\n`;
+      books.forEach((r) => {
+        md += `| **${r?.title || ''}** | ${r?.author || ''} | ${r?.format || ''} | ${r?.status || ''} | "${r?.takeaway || ''}" |\n`;
       });
     } else if (type === 'reflection') {
       md += `# 🍵 Weekly Synthesis & Reflective Pauses\n\n`;
@@ -250,25 +262,29 @@ export const TopBar: React.FC<TopBarProps> = ({
   // Generate CSVs directly in code for guaranteed download & copy
   const handleDownloadTasksCSV = () => {
     let csv = 'Task,Status,Priority,Life Area,Estimate,Due Date\n';
-    workspaceState.tasks.forEach((t) => {
-      csv += `"${t.title.replace(/"/g, '""')}","${t.status}","${t.priority}","${t.area}","${t.estimate || ''}","${t.dueDate || ''}"\n`;
+    const tasks = workspaceState?.tasks || [];
+    tasks.forEach((t) => {
+      csv += `"${(t?.title || '').replace(/"/g, '""')}","${t?.status || ''}","${t?.priority || ''}","${t?.area || ''}","${t?.estimate || ''}","${t?.dueDate || ''}"\n`;
     });
     triggerFileDownload(csv, 'tasks-database.csv', 'text/csv;charset=utf-8');
   };
 
   const handleDownloadHabitsCSV = () => {
     let csv = 'Habit,Category,Mon,Tue,Wed,Thu,Fri,Sat,Sun,Streak (Days)\n';
-    workspaceState.habits.forEach((h) => {
-      const days = h.days.map((d) => (d ? 'Yes' : 'No')).join(',');
-      csv += `"${h.name.replace(/"/g, '""')}","${h.category}",${days},${h.streak}\n`;
+    const habits = workspaceState?.habits || [];
+    habits.forEach((h) => {
+      const daysList = Array.isArray(h?.days) ? h.days : [];
+      const days = daysList.map((d) => (d ? 'Yes' : 'No')).join(',');
+      csv += `"${(h?.name || '').replace(/"/g, '""')}","${h?.category || ''}",${days},${h?.streak || 0}\n`;
     });
     triggerFileDownload(csv, 'habits-database.csv', 'text/csv;charset=utf-8');
   };
 
   const handleDownloadReadingCSV = () => {
     let csv = 'Title,Author,Format,Status,Core Insight\n';
-    workspaceState.reading.forEach((r) => {
-      csv += `"${r.title.replace(/"/g, '""')}","${r.author}","${r.format}","${r.status}","${(r.takeaway || '').replace(/"/g, '""')}"\n`;
+    const books = workspaceState?.library || workspaceState?.reading || [];
+    books.forEach((r) => {
+      csv += `"${(r?.title || '').replace(/"/g, '""')}","${r?.author || ''}","${r?.format || ''}","${r?.status || ''}","${(r?.takeaway || '').replace(/"/g, '""')}"\n`;
     });
     triggerFileDownload(csv, 'reading-database.csv', 'text/csv;charset=utf-8');
   };

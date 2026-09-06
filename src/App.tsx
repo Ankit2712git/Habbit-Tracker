@@ -279,11 +279,12 @@ export default function App() {
   };
 
   const workspaceState: WorkspaceState = {
-    tasks,
-    habits,
-    projects,
-    library,
-    daily: activeDaily,
+    tasks: tasks || [],
+    habits: habits || [],
+    projects: projects || [],
+    library: library || [],
+    reading: library || [],
+    daily: activeDaily || INITIAL_DAILY,
     fontStyle,
     fullWidth,
     activePageId,
