@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sanctuary — Downloading Notion File</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #FAF8F5;
+      color: #3A3F3A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .card {
+      background: #FFFFFF;
+      border: 1px solid #D9D1C7;
+      border-radius: 28px;
+      padding: 40px 32px;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px -15px rgba(58, 63, 58, 0.08);
+    }
+    .icon-wrapper {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      background-color: #EAF0EB;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      margin-bottom: 20px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      background-color: #EAF0EB;
+      color: #3B5A40;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #2E362F;
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+    p {
+      font-size: 13px;
+      color: #5C635B;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .file-pill {
+      display: inline-block;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background-color: #F5F2ED;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid #D9D1C7;
+      color: #3A3F3A;
+      font-size: 12px;
+      margin-bottom: 24px;
+    }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 24px;
+      border-radius: 9999px;
+      background-color: #7B8C7D;
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 12px rgba(123, 140, 125, 0.25);
+    }
+    .btn-primary:hover {
+      background-color: #68786A;
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 11px 20px;
+      border-radius: 9999px;
+      background-color: transparent;
+      color: #5C635B;
+      font-size: 12px;
+      font-weight: 500;
+      text-decoration: none;
+      border: 1px solid #D9D1C7;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-secondary:hover {
+      background-color: #F5F2ED;
+      color: #3A3F3A;
+    }
+    .instructions {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #E3E8E1;
+      text-align: left;
+      font-size: 11px;
+      color: #7B827A;
+      line-height: 1.6;
+    }
+    .instructions strong {
+      color: #3A3F3A;
+    }
+    .copy-success {
+      display: none;
+      color: #3B5A40;
+      font-weight: 600;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon-wrapper" id="iconWrapper">🍵</div>
+    <div>
+      <span class="badge" id="statusBadge">Preparing download...</span>
+    </div>
+    <h1 id="title">Downloading Notion File</h1>
+    <p id="description">Your file download should start automatically to your default Downloads folder.</p>
+    <div>
+      <div class="file-pill" id="filePill">sanctuary-notion-template.md</div>
+    </div>
+
+    <div class="actions">
+      <a id="downloadBtn" class="btn-primary" href="#" download="sanctuary-notion-template.md">
+        <span>↓ Download File Directly</span>
+      </a>
+      <button id="copyBtn" class="btn-secondary" type="button">
+        <span>📋 Copy File Content to Clipboard</span>
+      </button>
+      <div id="copySuccessMsg" class="copy-success">✓ Copied to clipboard! Paste directly into Notion.</div>
+      <a href="/" class="btn-secondary">
+        <span>← Return to Sanctuary App</span>
+      </a>
+    </div>
+
+    <div class="instructions" id="instructions">
+      <strong>How to import into Notion:</strong><br>
+      1. Open Notion and navigate to your workspace or a new page.<br>
+      2. Click <strong>Settings & Members</strong> → <strong>Import</strong> → <strong>Text & Markdown</strong> (or <strong>CSV</strong> for database files).<br>
+      3. Select this downloaded file. All headers, tasks, and tables will import natively!
+    </div>
+  </div>
+
+  <script>
+    (async function() {
+      const params = new URLSearchParams(window.location.search);
+      const fileType = params.get('file') || 'template';
+
+      const statusBadge = document.getElementById('statusBadge');
+      const title = document.getElementById('title');
+      const description = document.getElementById('description');
+      const filePill = document.getElementById('filePill');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const copyBtn = document.getElementById('copyBtn');
+      const copySuccessMsg = document.getElementById('copySuccessMsg');
+      const iconWrapper = document.getElementById('iconWrapper');
+
+      let filename = 'sanctuary-notion-template.md';
+      let content = '';
+      let mimeType = 'text/markdown;charset=utf-8';
+      let fetchUrl = '/sanctuary-template.md';
+
+      if (fileType === 'tasks') {
+        filename = 'tasks-database.csv';
+        mimeType = 'text/csv;charset=utf-8';
+        fetchUrl = '/notion-csv/tasks.csv';
+        iconWrapper.innerText = '🗂️';
+        title.innerText = 'Downloading Tasks Database';
+      } else if (fileType === 'habits') {
+        filename = 'habits-database.csv';
+        mimeType = 'text/csv;charset=utf-8';
+        fetchUrl = '/notion-csv/habits.csv';
+        iconWrapper.innerText = '🍵';
+        title.innerText = 'Downloading Habits Database';
+      } else if (fileType === 'reading') {
+        filename = 'reading-database.csv';
+        mimeType = 'text/csv;charset=utf-8';
+        fetchUrl = '/notion-csv/reading.csv';
+        iconWrapper.innerText = '📖';
+        title.innerText = 'Downloading Books Database';
+      } else {
+        filename = 'sanctuary-notion-template.md';
+        mimeType = 'text/markdown;charset=utf-8';
+        fetchUrl = '/sanctuary-template.md';
+        iconWrapper.innerText = '🌿';
+        title.innerText = 'Downloading Notion Template';
+      }
+
+      filePill.innerText = filename;
+
+      // Fetch the actual file content
+      try {
+        const res = await fetch(fetchUrl);
+        if (res.ok) {
+          content = await res.text();
+        }
+      } catch (err) {
+        console.warn('Fetch failed, using fallback content', err);
+      }
+
+      // If content was empty, provide a valid fallback
+      if (!content) {
+        content = '# 🌿 Sanctuary Workspace\\n\\nImport directly into Notion via Settings → Import → Text & Markdown\\n';
+      }
+
+      // Create Blob and URL
+      const blob = new Blob([content], { type: mimeType });
+      const objectUrl = URL.createObjectURL(blob);
+
+      // Wire download button
+      downloadBtn.href = objectUrl;
+      downloadBtn.download = filename;
+
+      // Wire copy button
+      copyBtn.addEventListener('click', async () => {
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(content);
+          } else {
+            const ta = document.createElement('textarea');
+            ta.value = content;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+          }
+          copySuccessMsg.style.display = 'block';
+          setTimeout(() => {
+            copySuccessMsg.style.display = 'none';
+          }, 3000);
+        } catch (e) {
+          alert('Could not copy automatically. You can download the file directly above.');
+        }
+      });
+
+      // Automatically trigger download since this is a top-level un-sandboxed window!
+      try {
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        statusBadge.innerText = '✓ Download started!';
+        statusBadge.style.backgroundColor = '#D5E3D8';
+        statusBadge.style.color = '#2E4733';
+        description.innerHTML = 'Saved <strong>' + filename + '</strong> to your computer.<br>If the download didn\'t begin automatically, click the button below:';
+      } catch (err) {
+        console.error('Auto download trigger error:', err);
+        statusBadge.innerText = 'Ready to download';
+        description.innerText = 'Click the button below to save the file to your device.';
+      }
+    })();
+  </script>
+</body>
+</html>

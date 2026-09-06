@@ -529,41 +529,33 @@ export const TopBar: React.FC<TopBarProps> = ({
                       </div>
                     </button>
 
-                    {/* Download Markdown File Button + Direct link */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={exportAsMarkdown}
-                        className="flex-1 flex items-center justify-between p-3 rounded-2xl border border-[#D9D1C7] hover:border-[#7B8C7D] hover:bg-[#F5F2ED] transition-colors cursor-pointer text-left"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <Download className="w-4 h-4 text-[#7B8C7D] shrink-0" />
-                          <div>
-                            <span className="text-xs font-semibold text-[#3A3F3A] block">
-                              Download Markdown (.md)
-                            </span>
-                            <span className="text-[10px] text-[#3A3F3A]/60">
-                              Import via Settings → Import → Text & Markdown
-                            </span>
-                          </div>
+                    {/* Download Markdown File Button - Direct target="_blank" to un-sandboxed download helper */}
+                    <a
+                      href="/download.html?file=template"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => {
+                        exportAsMarkdown();
+                      }}
+                      className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-[#D9D1C7] hover:border-[#7B8C7D] hover:bg-[#F5F2ED] transition-all cursor-pointer text-left group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-[#7B8C7D]/15 flex items-center justify-center text-[#7B8C7D] shrink-0 group-hover:bg-[#7B8C7D] group-hover:text-white transition-colors">
+                          <Download className="w-4 h-4" />
                         </div>
-                        <span className="text-[11px] text-[#3A3F3A]/70 font-medium flex items-center gap-1 bg-white px-2.5 py-1 rounded-full border border-[#D9D1C7] shrink-0 ml-2">
-                          <Download className="w-3 h-3" /> Download
-                        </span>
-                      </button>
-
-                      <a
-                        href="/sanctuary-template.md"
-                        download="sanctuary-template.md"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-3 rounded-2xl border border-[#D9D1C7] hover:border-[#7B8C7D] hover:bg-[#F5F2ED] text-[11px] text-[#7B8C7D] font-medium flex items-center gap-1 transition-colors cursor-pointer shrink-0"
-                        title="Direct link to template file"
-                      >
-                        <span>Raw</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
+                        <div>
+                          <span className="text-xs font-semibold text-[#3A3F3A] block">
+                            Download Markdown (.md)
+                          </span>
+                          <span className="text-[11px] text-[#3A3F3A]/60">
+                            Import via Settings → Import → Text & Markdown
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-[11px] text-[#3A3F3A]/80 font-medium flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-[#D9D1C7] group-hover:border-[#7B8C7D] group-hover:text-[#7B8C7D] shrink-0 ml-2 transition-colors shadow-2xs">
+                        <Download className="w-3.5 h-3.5" /> Download
+                      </span>
+                    </a>
 
                     {/* Copy Current View Only */}
                     <button
@@ -600,8 +592,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                       </span>
                       <div className="grid grid-cols-3 gap-2">
                         <a
-                          href="/notion-csv/tasks.csv"
-                          download="tasks.csv"
+                          href="/download.html?file=tasks"
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => {
@@ -612,11 +603,12 @@ export const TopBar: React.FC<TopBarProps> = ({
                         >
                           <span className="text-base">🗂️</span>
                           <span className="font-semibold text-[11px]">Tasks CSV</span>
-                          <span className="text-[10px] text-[#7B8C7D]">Download 📥</span>
+                          <span className="text-[10px] text-[#7B8C7D] flex items-center gap-0.5 font-medium">
+                            <Download className="w-3 h-3" /> Download
+                          </span>
                         </a>
                         <a
-                          href="/notion-csv/habits.csv"
-                          download="habits.csv"
+                          href="/download.html?file=habits"
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => {
@@ -627,11 +619,12 @@ export const TopBar: React.FC<TopBarProps> = ({
                         >
                           <span className="text-base">🍵</span>
                           <span className="font-semibold text-[11px]">Habits CSV</span>
-                          <span className="text-[10px] text-[#7B8C7D]">Download 📥</span>
+                          <span className="text-[10px] text-[#7B8C7D] flex items-center gap-0.5 font-medium">
+                            <Download className="w-3 h-3" /> Download
+                          </span>
                         </a>
                         <a
-                          href="/notion-csv/reading.csv"
-                          download="reading.csv"
+                          href="/download.html?file=reading"
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => {
@@ -642,7 +635,9 @@ export const TopBar: React.FC<TopBarProps> = ({
                         >
                           <span className="text-base">📖</span>
                           <span className="font-semibold text-[11px]">Books CSV</span>
-                          <span className="text-[10px] text-[#7B8C7D]">Download 📥</span>
+                          <span className="text-[10px] text-[#7B8C7D] flex items-center gap-0.5 font-medium">
+                            <Download className="w-3 h-3" /> Download
+                          </span>
                         </a>
                       </div>
                     </div>
